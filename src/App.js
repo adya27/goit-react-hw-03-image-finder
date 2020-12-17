@@ -2,11 +2,8 @@ import "./App.css";
 import "./styles.css";
 import React, { PureComponent } from "react";
 import Loader from "react-loader-spinner";
-import {
-  NotificationContainer,
-  NotificationManager,
-} from "react-notifications";
-import "react-notifications/lib/notifications.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Searchbar from "./Components/Searchbar/Searchbar";
 import ImageGallery from "./Components/ImageGallery/ImageGallery";
@@ -43,6 +40,8 @@ class App extends PureComponent {
     }
   }
 
+  notify = () => toast.error("Sorry, no matches :(");
+
   onSubmit = async (data) => {
     await this.setState({ status: "pending" });
     await this.setState({ search: data });
@@ -55,7 +54,7 @@ class App extends PureComponent {
       .then((data) => {
         if (data.total === 0) {
           this.setState({ status: "rejected" });
-          NotificationManager.error("No matches founded", "404", 3000);
+          this.notify();
         }
         return data;
       })
@@ -84,7 +83,7 @@ class App extends PureComponent {
       <div className="App">
         <Searchbar onSubmit={this.onSubmit} />
 
-        <NotificationContainer />
+        <ToastContainer />
 
         <ImageGallery onClick={this.onClick} match={this.state.match} />
 
