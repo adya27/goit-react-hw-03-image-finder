@@ -20,10 +20,18 @@ class App extends PureComponent {
     status: "idle",
   };
 
+  componentDidMount() {
+    this.setState(() => {
+      return { page: 1, match: [] };
+    });
+  }
+
   componentDidUpdate(prevProps, prevState) {
     const prevStateSearch = prevState.search;
     if (prevStateSearch !== this.state.search) {
-      this.setState({ page: 1 });
+      this.setState(() => {
+        return { page: 1, match: [] };
+      });
 
       window.scrollTo({
         top: 0,
@@ -42,35 +50,47 @@ class App extends PureComponent {
 
   notify = () => toast.error("Sorry, no matches :(");
 
-  onSubmit = async (data) => {
-    await this.setState({ status: "pending" });
-    await this.setState({ search: data });
-    await fetch(
-      `https://pixabay.com/api/?key=17537629-2ee3a1e1cfb1c48a1e1039472&q=${data}&image_type=photo&pretty=true&page=1&per_page=${
-        this.state.page * 12
-      }`
+  onSubmit = (data, page) => {
+    this.setState((s) => {
+      return { status: "pending", search: data };
+    });
+
+    fetch(
+      `https://pixabay.com/api/?key=17537629-2ee3a1e1cfb1c48a1e1039472&q=${data}&image_type=photo&pretty=true&page=${page}&per_page=12`
     )
       .then((res) => res.json())
       .then((data) => {
         if (data.total === 0) {
-          this.setState({ status: "rejected" });
+          this.setState(() => {
+            return { status: "rejected" };
+          });
           this.notify();
         }
         return data;
       })
-      .then((data) => this.setState({ match: data.hits }));
-    await this.setState({ status: "idle" });
+      .then((data) =>
+        this.setState((s) => {
+          return { match: [...s.match, ...data.hits], status: "idle" };
+        })
+      );
   };
 
   toggleModal = () => {
-    this.setState({ showModal: !this.state.showModal });
+    this.setState(() => {
+      return { showModal: !this.state.showModal };
+    });
   };
 
-  loadMore = async () => {
-    await this.setState((prev) => {
-      return { page: prev.page + 1 };
+  incrementPage() {
+    this.setState((s) => {
+      return { page: s.page + 1 };
     });
-    await this.onSubmit(this.state.search);
+  }
+
+  loadMore = () => {
+    this.incrementPage();
+
+    this.onSubmit(this.state.search, this.state.page + 1);
   };
 
   onClick = (data) => {
